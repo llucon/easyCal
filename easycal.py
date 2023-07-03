@@ -1,3 +1,6 @@
+from datetime import datetime
+import json
+
 import discord as discord
 
 client = discord.Client(intents=discord.Intents.default())
@@ -19,16 +22,33 @@ def readData():
     else:
         print("Die Datei enthält nicht genügend Zeilen.")
 
+def readDates(embed):
+    with open("dates.json", "r") as file:
+        json_data = json.load(file)
+
+    for item in json_data["data"]:
+        startdate = datetime.strptime(item["startdate"], "%Y-%m-%d").strftime("%d.%m.%Y")
+        enddate = datetime.strptime(item["enddate"], "%Y-%m-%d").strftime("%d.%m.%Y")
+        user = item["user"]
+        status = item["status"]
+        number = item["number"]
+
+        if status == "approved":
+            status = ":white_check_mark:"
+        elif status == "waiting":
+            status = ":question:"
+        elif status == "declined":
+            status = ":x:"
+
+        embed.add_field(name=f"{startdate}" + "-" + f"{enddate}", value=f"{user} #{number} {status}", inline=False)
+    return embed
 def sendCal():
     embed = discord.Embed(
         title="Abmeldungen",
         description="Abmeldungen per /abmelden {TT.MM.JJJJ} - {TT.MM.JJJJ} {Grund}",
         color=0x657070
     )
-    embed.add_field(name="08.07.2023-13.07.2023", value="@lucon. #001 :white_check_mark:", inline=False)
-    embed.add_field(name="10.08.2023-13.09.2023", value="@lucon. #002 :question:")
-
-    return embed
+    return readDates(embed)
 
 readData()
 
